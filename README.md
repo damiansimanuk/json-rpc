@@ -1,6 +1,8 @@
 # 🐍🌪️ json-rpc
 
 based on niko [tornado-jsonrpc2](https://github.com/okin/tornado-jsonrpc2)
+based on [jsonrpcserver](https://github.com/bcb/jsonrpcserver)
+
 A [JSON-RPC](https://www.jsonrpc.org/) request handler for [Tornado](https://www.tornadoweb.org/).
 
 It follows the specifications for [JSON-RPC 2.0](https://www.jsonrpc.org/specification) and [1.0](https://www.jsonrpc.org/specification_v1).

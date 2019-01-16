@@ -1,5 +1,4 @@
 import json
-from tornado.escape import json_decode
 from .exceptions import JSONRPCError, InvalidRequest, ParseError, EmptyBatchRequest
 
 SUPPORTED_VERSIONS = {'2.0', '1.0'}
@@ -7,7 +6,7 @@ SUPPORTED_VERSIONS = {'2.0', '1.0'}
 
 def encode(value):
     """JSON-encodes the given Python object."""
-    return json.dumps(value, default=lambda o: o.__dict__()).replace("</", "<\\/")
+    return json.dumps(value, default=lambda o: o.toJson()).replace("</", "<\\/")
 
 
 def decode(request_json, version=None):
@@ -73,7 +72,7 @@ class JSONRPCStyleError:
     def __repr__(self):
         return '{}(code={!r})'.format(self.__class__.__name__, self._code)
 
-    def __dict__(self):
+    def toJson(self):
         return dict(code=self._code, message=self._message)
 
 
@@ -116,7 +115,7 @@ class JSONRPCResponse:
         return '{}(version={!r}, result={!r}, error={!r}, id={!r})'.format(
             self.__class__.__name__, self._version, self._result, self._error, self._id)
 
-    def __dict__(self):
+    def toJson(self):
         if self._error:
             if self.version == '1.0':
                 return {"id": self._id,
@@ -137,7 +136,7 @@ class JSONRPCResponse:
                         "result": self._result}
 
 
-class JSONRPCStyleEvent:
+class JSONRPCEvent:
     def __init__(self, notification: str, params: (list, dict)):
         self._params = params
         self._notification = notification
@@ -150,10 +149,13 @@ class JSONRPCStyleEvent:
     def params(self) -> (list, dict):
         return self._params
 
-    def __dict__(self):
+    def toJson(self):
         return {"jsonrpc": "2.0",
                 "notification": self._notification,
                 "params": self._params}
+
+    def __repr__(self):
+        return '{}(notification={!r}, params={!r})'.format(self.__class__.__name__, self._notification, self._params)
 
 
 class JSONRPCStyleRequest:

@@ -1,4 +1,4 @@
-from .jsonrpc import JSONRPCRequest, JSONRPCResponse
+from .jsonrpc import JSONRPCRequest, JSONRPCResponse, JSONRPCEvent
 from .exceptions import JSONRPCError, MethodNotFound, InvalidEvent
 from funcsigs import signature
 import inspect
@@ -14,12 +14,12 @@ class Dispatcher:
         if not event_name or not (event_name in self.EVENTS.keys()):
             raise InvalidEvent
 
-        notification = dict(notification=event_name, params=params, jsonrpc='2.0')
+        notification = JSONRPCEvent(notification=event_name, params=params)
 
         print("*** emit:", notification)
-        for transport in self.EVENTS[event_name]:
-            if transport.hasatt
-                transport.emit_message(notification) 
+        for transport in [*self.EVENTS[event_name]]:
+            if callable(getattr(transport, "emit_message", None)):
+                transport.emit_message(notification)
 
     def register_event(self, event_name):
         if isinstance(event_name, list):

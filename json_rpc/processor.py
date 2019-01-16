@@ -1,21 +1,18 @@
-from tornado.web import RequestHandler
 import logging
 from .jsonrpc import decode, encode, JSONRPCStyleError, JSONRPCResponse
-from .exceptions import (
-    JSONRPCError, ParseError, InvalidRequest, MethodNotFound,
-    InvalidParams, InternalError, EmptyBatchRequest)
+from .exceptions import (JSONRPCError, ParseError, InvalidRequest, MethodNotFound,
+                         InvalidParams, InternalError, EmptyBatchRequest)
 
-__all__ = ("BasicJSONRPCHandler", "JSONRPCHandler")
+__all__ = ("BasicJSONRPCProcessor")
 
 logger = logging.getLogger("jsonrpc")
 
 
-class BasicJSONRPCHandler():
+class BasicJSONRPCProcessor():
 
-    def __init__(self, version=None):
-        self.version = version
+    version = None
 
-    async def handle_jsonrpc(self, request_json):
+    async def process_jsonrpc(self, request_json):
         try:
             request = decode(request_json, version=self.version)
         except (InvalidRequest, ParseError, EmptyBatchRequest) as ex:
@@ -65,19 +62,3 @@ class BasicJSONRPCHandler():
 
     async def compute_result(self, request):
         raise NotImplementedError("Handler does not create an result.")
-
-
-class JSONRPCHandler(RequestHandler):
-    def initialize(self, response_creator, version=None):
-        self.handler = BasicJSONRPCHandler(version=version)
-        self.handler.compute_result = response_creator
-
-    def set_default_headers(self):
-        self.set_header('Content-Type', 'application/json')
-
-    async def post(self):
-        j = self.request.body
-        logger.warning("body:%r", j)
-        res = await self.handler.handle_jsonrpc(self.request.body)
-        if res:
-            self.write(encode(res))
